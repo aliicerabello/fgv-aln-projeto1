@@ -141,7 +141,6 @@ tamanhos = [
 
     # 🔹 Um caso grande
     (300, 300, 300),
-
     (500, 300, 500)
 ]
 
@@ -166,6 +165,76 @@ def mat_prod_dot(A, B):
             C[i, j] = np.dot(A[i, :], B[:, j])
             
     return C
+
+
+def rodar_testes_dot(tamanhos, repeticoes=10):
+    """
+    Compara mat_prod (lista), mat_prod_np (numpy triple loop)
+    e mat_prod_dot (numpy com np.dot no laço) nas mesmas dimensões.
+    Usa apenas perf_counter — medidor mais confiável.
+    """
+    for (m, n, p) in tamanhos:
+        # mesma matriz para todos — mesmos dados numéricos
+        A_list = gerar_matriz(m, n)
+        B_list = gerar_matriz(n, p)
+        A_np   = np.array(A_list)
+        B_np   = np.array(B_list)
+
+        # warm-up
+        mat_prod(A_list, B_list)
+        mat_prod_np(A_np, B_np)
+        mat_prod_dot(A_np, B_np)
+
+        # medição
+        t_lista = medir_perf_counter(mat_prod,     A_list, B_list, repeticoes)
+        t_np    = medir_perf_counter(mat_prod_np,  A_np,   B_np,   repeticoes)
+        t_dot   = medir_perf_counter(mat_prod_dot, A_np,   B_np,   repeticoes)
+
+        print(f"\n=== A: {m}×{n}  |  B: {n}×{p} ===")
+        print(f"{'Função':<20} {'Tempo (s)':>12} {'Razão vs lista':>16}")
+        print("-" * 50)
+        print(f"{'mat_prod (lista)':<20} {t_lista:>12.6f} {'1.00x':>16}")
+        print(f"{'mat_prod_np':<20} {t_np:>12.6f} {t_np/t_lista:>15.2f}x")
+        print(f"{'mat_prod_dot':<20} {t_dot:>12.6f} {t_dot/t_lista:>15.2f}x")
+
+#rodar_testes_dot(tamanhos, repeticoes=10)
+
+def mat_prod_nativa(A, B):
+    return A @ B
+
+def rodar_testes_native(tamanhos, repeticoes=10):
+    """
+    Compara todas as implementações + operador nativo @
+    Usa apenas perf_counter.
+    """
+    for (m, n, p) in tamanhos:
+        A_list = gerar_matriz(m, n)
+        B_list = gerar_matriz(n, p)
+        A_np   = np.array(A_list)
+        B_np   = np.array(B_list)
+
+        # warm-up
+        mat_prod(A_list, B_list)
+        mat_prod_np(A_np, B_np)
+        mat_prod_dot(A_np, B_np)
+        mat_prod_nativa(A_np, B_np)
+
+        t_lista  = medir_perf_counter(mat_prod,        A_list, B_list, repeticoes)
+        t_np     = medir_perf_counter(mat_prod_np,     A_np,   B_np,   repeticoes)
+        t_dot    = medir_perf_counter(mat_prod_dot,    A_np,   B_np,   repeticoes)
+        t_native = medir_perf_counter(mat_prod_nativa, A_np,   B_np,   repeticoes)
+
+        print(f"\n=== A: {m}×{n}  |  B: {n}×{p} ===")
+        print(f"{'Função':<20} {'Tempo (s)':>12} {'Razão vs lista':>16}")
+        print("-" * 50)
+        print(f"{'mat_prod (lista)':<20} {t_lista:>12.6f} {'1.00x':>16}")
+        print(f"{'mat_prod_np':<20} {t_np:>12.6f} {t_np/t_lista:>15.2f}x")
+        print(f"{'mat_prod_dot':<20} {t_dot:>12.6f} {t_dot/t_lista:>15.2f}x")
+        print(f"{'@ (nativo)':<20} {t_native:>12.6f} {t_native/t_lista:>15.2f}x")
+
+
+rodar_testes_native(tamanhos, repeticoes=10)
+
 
 
 
