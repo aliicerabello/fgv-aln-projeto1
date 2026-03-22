@@ -2,9 +2,7 @@ using LinearAlgebra   # dot()
 using Printf          # @sprintf
 using Random          # rand()
 
-# ============================================================
-#  LETRA A) — Implementações do produto de matrizes
-# ============================================================
+#------------------------LETRA  A)------------------------
 
 # Versão 1: arrays de arrays (equivalente a listas de listas em Python)
 function mat_prod(A::Vector{Vector{Float64}}, B::Vector{Vector{Float64}})
@@ -159,11 +157,12 @@ function rodar_testes(tamanhos; repeticoes=10)
     end
 end
 
-# ============================================================
-#  LETRA C) — mat_prod_dot com produto escalar nativo
-# ============================================================
+
+#------------------------LETRA  C)------------------------
+
 
 function mat_prod_dot(A::Matrix{Float64}, B::Matrix{Float64})
+    # substitui o loop k pelo produto escalar nativo
     m, n  = size(A)
     n_B, p = size(B)
 
@@ -175,7 +174,6 @@ function mat_prod_dot(A::Matrix{Float64}, B::Matrix{Float64})
 
     for i in 1:m
         for j in 1:p
-            # substitui o loop k pelo produto escalar nativo
             C[i, j] = dot(A[i, :], B[:, j])
         end
     end
@@ -195,10 +193,12 @@ function rodar_testes_dot(tamanhos; repeticoes=10)
         mat_prod_np(A_mat, B_mat)
         mat_prod_dot(A_mat, B_mat)
 
+        #medição de tempo
         t_lista = medir_perf_counter(mat_prod,     A_list, B_list; repeticoes=repeticoes)
         t_np    = medir_perf_counter(mat_prod_np,  A_mat,  B_mat;  repeticoes=repeticoes)
         t_dot   = medir_perf_counter(mat_prod_dot, A_mat,  B_mat;  repeticoes=repeticoes)
 
+        #exibição no terminal
         println("\n=== A: $(m)×$(n)  |  B: $(n)×$(p) ===")
         @printf("%-20s %12s %16s\n", "Função", "Tempo (s)", "Razão vs lista")
         println("-"^50)
@@ -208,11 +208,9 @@ function rodar_testes_dot(tamanhos; repeticoes=10)
     end
 end
 
-# ============================================================
-#  LETRA D) — Operador nativo * de Julia
-# ============================================================
+#------------------------LETRA  D)------------------------
 
-# Em Julia, A * B já chama BLAS/LAPACK diretamente
+
 mat_prod_nativa(A, B) = A * B
 
 function rodar_testes_native(tamanhos; repeticoes=10)
@@ -222,17 +220,19 @@ function rodar_testes_native(tamanhos; repeticoes=10)
         A_mat  = Float64[A_list[i][j] for i in 1:m, j in 1:n]
         B_mat  = Float64[B_list[i][j] for i in 1:n, j in 1:p]
 
-        # warm-up
+        # aquecimento
         mat_prod(A_list, B_list)
         mat_prod_np(A_mat, B_mat)
         mat_prod_dot(A_mat, B_mat)
         mat_prod_nativa(A_mat, B_mat)
 
+        #mensurar
         t_lista  = medir_perf_counter(mat_prod,        A_list, B_list; repeticoes=repeticoes)
         t_np     = medir_perf_counter(mat_prod_np,     A_mat,  B_mat;  repeticoes=repeticoes)
         t_dot    = medir_perf_counter(mat_prod_dot,    A_mat,  B_mat;  repeticoes=repeticoes)
         t_native = medir_perf_counter(mat_prod_nativa, A_mat,  B_mat;  repeticoes=repeticoes)
 
+        #exibição no terminal
         println("\n=== A: $(m)×$(n)  |  B: $(n)×$(p) ===")
         @printf("%-20s %12s %16s\n", "Função", "Tempo (s)", "Razão vs lista")
         println("-"^50)
@@ -242,10 +242,6 @@ function rodar_testes_native(tamanhos; repeticoes=10)
         @printf("%-20s %12.6f %15.2fx\n", "* (nativo)",      t_native, t_native/t_lista)
     end
 end
-
-# ============================================================
-#  EXECUÇÃO
-# ============================================================
 
 tamanhos = [
     (5,   5,   5),

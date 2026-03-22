@@ -1,7 +1,9 @@
 #------------------------LETRA A)------------------------
 import numpy as np
 
-def mat_prod(A:list[list], B:list[list]) -> list[list]: #LISTA DE LISTAS
+#faz o produto usando lista de listas
+
+def mat_prod(A:list[list], B:list[list]):
     m = len(A)          # número de linhas de A
     n = len(A[0])       # número de colunas de A 
     q = len(B)          # número de linhas de B
@@ -23,7 +25,7 @@ def mat_prod(A:list[list], B:list[list]) -> list[list]: #LISTA DE LISTAS
  
         return C
 
-#fazer o produto usando numpy array
+#faz o produto usando numpy array
 
 def mat_prod_np(A, B):
     m, n = A.shape
@@ -41,8 +43,7 @@ def mat_prod_np(A, B):
 
     return C
 
-# Observação: esta versão usa loops explícitos,
-# portanto não aproveita a vetorização do NumPy
+# OBS: essa função usa loops explícitos, i.e., não aproveita a vetorização do numpy
 
     
 
@@ -59,6 +60,7 @@ def gerar_matriz(m, n):
 def gerar_matriz_np(m, n):
     return np.random.rand(m, n)
 
+#medição de tempo das matrizes geradas aleatoriamente usando o perf_counter
 def medir_perf_counter(func, A, B, repeticoes=10):
     tempos = []
     for _ in range(repeticoes):
@@ -68,6 +70,7 @@ def medir_perf_counter(func, A, B, repeticoes=10):
         tempos.append(fim - inicio)
     return sum(tempos) / len(tempos)
 
+#medição de tempo das matrizes geradas aleatoriamente usando o time()
 def medir_time(func, A, B, repeticoes=10):
     tempos = []
     for _ in range(repeticoes):
@@ -77,6 +80,7 @@ def medir_time(func, A, B, repeticoes=10):
         tempos.append(fim - inicio)
     return sum(tempos) / len(tempos)
 
+#medição de tempo das matrizes geradas aleatoriamente usando o process_time()
 def medir_process_time(func, A, B, repeticoes=10):
     tempos = []
     for _ in range(repeticoes):
@@ -86,6 +90,7 @@ def medir_process_time(func, A, B, repeticoes=10):
         tempos.append(fim - inicio)
     return sum(tempos) / len(tempos)
 
+#medição de tempo das matrizes geradas aleatoriamente usando o timeit()
 def medir_timeit(func, A, B, repeticoes=10):
     timer = timeit.Timer(lambda: func(A, B))
     return min(timer.repeat(repeat=repeticoes, number=3)) / 3
@@ -99,60 +104,62 @@ def rodar_testes(tamanhos, repeticoes=10):
     }
 
     for (m, n, p) in tamanhos:
-        # 1) Gera UMA VEZ e compartilha entre todos os medidores
+        # gera uma vez e compartilha entre todos os medidores
         A_list = gerar_matriz(m, n)
         B_list = gerar_matriz(n, p)
-        A_np   = np.array(A_list)        # 2) converte o MESMO dado para numpy
-        B_np   = np.array(B_list)        #    em vez de gerar de novo
+        A_np   = np.array(A_list)        #    converte a mesma matriz pra numpy
+        B_np   = np.array(B_list)        #    em vez de gerar outra matriz
 
-        # warm-up (evita custo de inicialização/cache)
+        # aquecimento
         mat_prod(A_list, B_list)
         mat_prod_np(A_np, B_np)
 
+        #exibir no terminal
         print(f"\n=== A: {m}×{n}  |  B: {n}×{p} ===")
         print(f"{'Medidor':<15} {'mat_prod (lista)':>20} {'mat_prod_np':>20}")
         print("-" * 57)
 
+        #medição
         for nome, medir in medidores.items():
             t_lista = medir(mat_prod, A_list, B_list, repeticoes)
             t_np    = medir(mat_prod_np, A_np,   B_np,   repeticoes)
             print(f"{nome:<15} {t_lista:>20.6f}s {t_np:>20.6f}s")
 
 tamanhos = [
-    # 🔹 Pequenos (debug + comportamento inicial)
+    # pequenas
     (5, 5, 5),
     (10, 10, 10),
 
-    # 🔹 Retangulares (m < n)
+    # retangulares (m < n)
     (10, 50, 10),
     (20, 100, 20),
 
-    # 🔹 Retangulares (m > n)
+    # retangulares (m > n)
     (50, 10, 50),
     (100, 20, 100),
 
-    # 🔹 Quadradas médias
+    # quadradas médias
     (50, 50, 50),
     (100, 100, 100),
 
-    # 🔹 Casos maiores (já mostram O(n³))
+    # casos maiores
     (150, 150, 150),
     (200, 200, 200),
 
-    # 🔹 Um caso grande
+    # casos grandes
     (300, 300, 300),
     (500, 300, 500)
 ]
 
-#rodar_testes(tamanhos, repeticoes=10)
+rodar_testes(tamanhos, repeticoes=10)
 
 #------------------------LETRA  C)------------------------
 
 def mat_prod_dot(A, B):
-    # A e B devem ser np.array para performance
+    # substitui o loop k pelo produto escalar nativo
     m, n = A.shape
-    n_B, p = B.shape
-    
+    n_B, p = B.shape     # A e B devem ser np.array
+
     if n != n_B:
         raise ValueError("Dimensões incompatíveis")
         
@@ -160,8 +167,6 @@ def mat_prod_dot(A, B):
     
     for i in range(m):
         for j in range(p):
-            # Substituímos o loop 'k' pelo produto escalar da 
-            # linha i de A com a coluna j de B
             C[i, j] = np.dot(A[i, :], B[:, j])
             
     return C
@@ -169,18 +174,18 @@ def mat_prod_dot(A, B):
 
 def rodar_testes_dot(tamanhos, repeticoes=10):
     """
-    Compara mat_prod (lista), mat_prod_np (numpy triple loop)
-    e mat_prod_dot (numpy com np.dot no laço) nas mesmas dimensões.
-    Usa apenas perf_counter — medidor mais confiável.
+    compara mat_prod (lista), mat_prod_np
+    e mat_prod_dot (numpy com np.dot no laço) nas mesmas dimensões
+    usa apenas o medidor perf_counter
     """
     for (m, n, p) in tamanhos:
-        # mesma matriz para todos — mesmos dados numéricos
+        # mesma matriz para todos (mesmos dados numéricos)
         A_list = gerar_matriz(m, n)
         B_list = gerar_matriz(n, p)
         A_np   = np.array(A_list)
         B_np   = np.array(B_list)
 
-        # warm-up
+        # aquecimento
         mat_prod(A_list, B_list)
         mat_prod_np(A_np, B_np)
         mat_prod_dot(A_np, B_np)
@@ -190,6 +195,7 @@ def rodar_testes_dot(tamanhos, repeticoes=10):
         t_np    = medir_perf_counter(mat_prod_np,  A_np,   B_np,   repeticoes)
         t_dot   = medir_perf_counter(mat_prod_dot, A_np,   B_np,   repeticoes)
 
+        #exibição no terminal
         print(f"\n=== A: {m}×{n}  |  B: {n}×{p} ===")
         print(f"{'Função':<20} {'Tempo (s)':>12} {'Razão vs lista':>16}")
         print("-" * 50)
@@ -197,15 +203,19 @@ def rodar_testes_dot(tamanhos, repeticoes=10):
         print(f"{'mat_prod_np':<20} {t_np:>12.6f} {t_np/t_lista:>15.2f}x")
         print(f"{'mat_prod_dot':<20} {t_dot:>12.6f} {t_dot/t_lista:>15.2f}x")
 
-#rodar_testes_dot(tamanhos, repeticoes=10)
+rodar_testes_dot(tamanhos, repeticoes=10)
+
+#------------------------LETRA  D)------------------------
+
 
 def mat_prod_nativa(A, B):
     return A @ B
 
 def rodar_testes_native(tamanhos, repeticoes=10):
     """
-    Compara todas as implementações + operador nativo @
-    Usa apenas perf_counter.
+    compara todas as implementações e o operador nativo @
+    usa apenas o medidor perf_counter
+
     """
     for (m, n, p) in tamanhos:
         A_list = gerar_matriz(m, n)
@@ -213,17 +223,19 @@ def rodar_testes_native(tamanhos, repeticoes=10):
         A_np   = np.array(A_list)
         B_np   = np.array(B_list)
 
-        # warm-up
+        # aquecimento
         mat_prod(A_list, B_list)
         mat_prod_np(A_np, B_np)
         mat_prod_dot(A_np, B_np)
         mat_prod_nativa(A_np, B_np)
 
+        #medição
         t_lista  = medir_perf_counter(mat_prod,        A_list, B_list, repeticoes)
         t_np     = medir_perf_counter(mat_prod_np,     A_np,   B_np,   repeticoes)
         t_dot    = medir_perf_counter(mat_prod_dot,    A_np,   B_np,   repeticoes)
         t_native = medir_perf_counter(mat_prod_nativa, A_np,   B_np,   repeticoes)
 
+        #exibição no terminal 
         print(f"\n=== A: {m}×{n}  |  B: {n}×{p} ===")
         print(f"{'Função':<20} {'Tempo (s)':>12} {'Razão vs lista':>16}")
         print("-" * 50)
@@ -235,18 +247,3 @@ def rodar_testes_native(tamanhos, repeticoes=10):
 
 rodar_testes_native(tamanhos, repeticoes=10)
 
-
-
-
-
-
-
-
-
-
-#fazer o produto usando numpy - OK
-#nao contar o tempo da criacao da matriz C de zeros na medicao de tempo - Observação no PDF
-#tamanhos = [2, 5, 10, 20, 50, 100, 200, 300, 500] - OK
-#fazer 10 casos de cada produto de matriz de tamanhos e calcular a media - OK
-#fazer media do tempo do produto de matrizes do mesmo tamanho - OK
-#fazer tabela com diferentes medidores de  - OK
