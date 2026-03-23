@@ -176,7 +176,7 @@ def rodar_testes_dot(tamanhos, repeticoes=10):
     """
     compara mat_prod (lista), mat_prod_np
     e mat_prod_dot (numpy com np.dot no laço) nas mesmas dimensões
-    usa apenas o medidor perf_counter
+    usa só o medidor perf_counter
     """
     for (m, n, p) in tamanhos:
         # mesma matriz para todos (mesmos dados numéricos)
