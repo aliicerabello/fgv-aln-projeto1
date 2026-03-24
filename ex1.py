@@ -148,7 +148,8 @@ tamanhos = [
 
     # casos grandes
     (300, 300, 300),
-    (500, 300, 500)
+    (400, 400, 400),
+    (500, 200, 500)
 ]
 
 rodar_testes(tamanhos, repeticoes=10)

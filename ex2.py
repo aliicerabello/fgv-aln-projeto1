@@ -1,13 +1,44 @@
 
 #------------------------LETRA A)------------------------
-"""
-resolver usando metodo de thomas
-"""
- 
- 
 def solve_tridiag(A, b):
-    pass
+    """
+    Resolve sistema tridiagonal Ax = b usando o método de Thomas.
+    A: matriz tridiagonal nxn
+    b: vetor do lado direito - tamanho n
+    """
+    n = len(b)
  
+    # Extrai as três diagonais de A
+    inf  = [A[i][i-1] for i in range(1, n)]   # sub-diagonal
+    diag = [A[i][i]   for i in range(n)]       # diagonal principal
+    sup  = [A[i][i+1] for i in range(n-1)]     # super-diagonal
+ 
+    # Criar cópias para não modificar os vetores originais
+    sup_prime = [0.0] * (n - 1)
+    b_prime   = [0.0] * n
+    x         = [0.0] * n
+ 
+ 
+    # Forward Sweep (fatoração)
+    sup_prime[0] = sup[0] / diag[0]
+    b_prime[0]   = b[0]  / diag[0]
+ 
+    for i in range(1, n - 1):
+        denom        = diag[i] - inf[i-1] * sup_prime[i-1]
+        sup_prime[i] = sup[i] / denom
+        b_prime[i]   = (b[i] - inf[i-1] * b_prime[i-1]) / denom
+ 
+    b_prime[n-1] = (b[n-1] - inf[n-2] * b_prime[n-2]) / (diag[n-1] - inf[n-2] * sup_prime[n-2])
+ 
+    # Back Substitution (substituição reversa)
+    x[n-1] = b_prime[n-1]
+ 
+    for i in range(n - 2, -1, -1):
+        x[i] = b_prime[i] - sup_prime[i] * x[i+1]
+ 
+    return x
+ 
+
 
 #------------------------LETRA B)------------------------
 
@@ -63,15 +94,14 @@ def rodar_teste(tamanhos, repeticoes=10):
     for n in tamanhos:
         A, b, x_real = gerar_sistema_tridiag(n)
 
-        m = len[A]
-        n = len[A[0]]
-        p = len[b] #verificar em solve_tridiag se o tamanho bate
+        n = len(A[0])
+        p = len(b) # p = n
 
         # x calculado em solve_tridiag
         x_calc = solve_tridiag(A, b)
 
         #exibir no terminal
-        print(f"\n=== A: {m}×{n}  |  b: {m}×{1} ===")
+        print(f"\n=== A: {n}×{n}  |  b: {p}×{1} ===")
         print(f"{'perf_counter':<15} {'solve_tridiag':>20}")
         print("Calculado:", x_calc)
         print("Esperado :", x_real)
@@ -97,11 +127,15 @@ def rodar_testes_dot(tamanhos, repeticoes=10):
     compara solve_tridiag_np e solve_tridiag.
     usa só o medidor perf_counter
     """
-    A, b, x_real = gerar_sistema_tridiag(n) 
 
-    for _ in tamanhos:
+    for n in tamanhos:
+
         # mesma matriz para todos (mesmos dados numéricos)
-        A, b, x_real = gerar_sistema_tridiag(n)     
+        A, b, x_real = gerar_sistema_tridiag(n) 
+
+        n = len(A[0])
+        p = len(b) # p = n
+     
 
         # aquecimento
         solve_tridiag(A,b)
@@ -110,13 +144,13 @@ def rodar_testes_dot(tamanhos, repeticoes=10):
         # medição
         t_np = medir_tridiag(solve_tridiag_np, A, b, repeticoes)
         t_tridiag = medir_tridiag(solve_tridiag, A, b, repeticoes)
-    
+        razao = t_np/t_tridiag
         #exibição no terminal
-        print(f"\n=== A: {m}×{n}  |  B: {n}×{p} ===")
+        print(f"\n=== A: {n}×{n}  |  B: {p}×{1} ===")
         print(f"{'Função':<20} {'Tempo (s)':>12} {'Razão vs lista':>16}")
         print("-" * 50)
-        print(f"{'mat_prod (lista)':<20} {t_lista:>12.6f} {'1.00x':>16}")
-        print(f"{'mat_prod_np':<20} {t_np:>12.6f} {t_np/t_lista:>15.2f}x")
-        print(f"{'mat_prod_dot':<20} {t_dot:>12.6f} {t_dot/t_lista:>15.2f}x")
-
+        print(f"{'solve_tridiag':<20} {t_tridiag:>12.6f} {'1.00x':>16}")
+        print(f"{'solve_tridiag_np':<20} {t_np:>12.6f} {razao:>15.2f}x")
+   
+tamanhos = tamanhos = [2, 3, 5, 10, 30, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
 rodar_testes_dot(tamanhos, repeticoes=10)
