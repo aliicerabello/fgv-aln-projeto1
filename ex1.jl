@@ -4,7 +4,7 @@ using Random          # rand()
 
 #------------------------LETRA  A)------------------------
 
-# Versão 1: arrays de arrays (equivalente a listas de listas em Python)
+# arrays de arrays (listas de listas em Python)
 function mat_prod(A::Vector{Vector{Float64}}, B::Vector{Vector{Float64}})
     m = length(A)
     n = length(A[1])
@@ -256,6 +256,7 @@ tamanhos = [
     (200, 200, 200),
     (300, 300, 300),
     (500, 300, 500),
+    (500, 500, 500)
 ]
 
 # IMPORTANTE: rodar uma vez com tamanho pequeno para acionar o JIT
