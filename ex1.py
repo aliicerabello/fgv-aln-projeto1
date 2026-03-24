@@ -148,8 +148,7 @@ tamanhos = [
 
     # casos grandes
     (300, 300, 300),
-    (400, 400, 400),
-    (500, 200, 500)
+    (400, 300, 400),
 ]
 
 rodar_testes(tamanhos, repeticoes=10)
@@ -175,9 +174,9 @@ def mat_prod_dot(A, B):
 
 def rodar_testes_dot(tamanhos, repeticoes=10):
     """
-    compara mat_prod (lista), mat_prod_np
-    e mat_prod_dot (numpy com np.dot no laço) nas mesmas dimensões
-    usa só o medidor perf_counter
+    -compara mat_prod (lista), mat_prod_np;
+    -e mat_prod_dot (numpy com np.dot no laço) nas mesmas dimensões;
+    -usa só o medidor perf_counter.
     """
     for (m, n, p) in tamanhos:
         # mesma matriz para todos (mesmos dados numéricos)
@@ -214,8 +213,8 @@ def mat_prod_nativa(A, B):
 
 def rodar_testes_native(tamanhos, repeticoes=10):
     """
-    compara todas as implementações e o operador nativo @
-    usa apenas o medidor perf_counter
+    -compara todas as implementações e o operador nativo @
+    -usa apenas o medidor perf_counter
 
     """
     for (m, n, p) in tamanhos:
@@ -247,4 +246,3 @@ def rodar_testes_native(tamanhos, repeticoes=10):
 
 
 rodar_testes_native(tamanhos, repeticoes=10)
-
