@@ -111,46 +111,67 @@ def rodar_teste(tamanhos, repeticoes=10):
         t_tridiag = medir_tridiag(solve_tridiag, A, b, repeticoes)
         print(f"{t_tridiag:>20.6f}s")
 
-tamanhos = [2, 3, 5, 10, 30, 50, 100, 200, 500, 1000, 2000]
+tamanhos = [2, 3, 5, 10, 30, 50, 100, 200, 500, 1000]
 
-rodar_teste(tamanhos, repeticoes=10)
+#rodar_teste(tamanhos, repeticoes=10)
 
 #------------------------LETRA C)------------------------
 
 import numpy as np
 
+
 def solve_tridiag_np(A,b):
-    np.linalg.solve(A, b)
+    return np.linalg.solve(np.array(A), np.array(b))
 
-def rodar_testes_dot(tamanhos, repeticoes=10):
-    """
-    compara solve_tridiag_np e solve_tridiag.
-    usa só o medidor perf_counter
-    """
 
-    for n in tamanhos:
-
-        # mesma matriz para todos (mesmos dados numéricos)
-        A, b, x_real = gerar_sistema_tridiag(n) 
-
-        n = len(A[0])
-        p = len(b) # p = n
-     
-
+def rodar_testes(inicio=10, fim=2000, passo=100, repeticoes=10):
+    tamanhos, tempos_thomas, tempos_np = [], [], []
+    cruzamento = None
+    diff_anterior = None
+ 
+    for n in range(inicio, fim + 1, passo):
+        A, b, _ = gerar_sistema_tridiag(n)
+ 
         # aquecimento
-        solve_tridiag(A,b)
-        solve_tridiag_np(A,b)
+        solve_tridiag(A, b)
+        solve_tridiag_np(A, b)
+ 
+        t_thomas = medir_tridiag(solve_tridiag, A, b, repeticoes)
+        t_np     = medir_tridiag(solve_tridiag_np, A, b, repeticoes)
+ 
+        tamanhos.append(n)
+        tempos_thomas.append(t_thomas)
+        tempos_np.append(t_np)
+ 
+        # diferença de tempos
+        diff = t_np - t_thomas
 
-        # medição
-        t_np = medir_tridiag(solve_tridiag_np, A, b, repeticoes)
-        t_tridiag = medir_tridiag(solve_tridiag, A, b, repeticoes)
-        razao = t_np/t_tridiag
-        #exibição no terminal
-        print(f"\n=== A: {n}×{n}  |  B: {p}×{1} ===")
-        print(f"{'Função':<20} {'Tempo (s)':>12} {'Razão vs lista':>16}")
-        print("-" * 50)
-        print(f"{'solve_tridiag':<20} {t_tridiag:>12.6f} {'1.00x':>16}")
-        print(f"{'solve_tridiag_np':<20} {t_np:>12.6f} {razao:>15.2f}x")
-   
-tamanhos = tamanhos = [2, 3, 5, 10, 30, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
-rodar_testes_dot(tamanhos, repeticoes=10)
+        # detecta cruzamento (mudança de sinal)
+        if diff_anterior is not None:
+            if diff_anterior > 0 and diff < 0:
+                cruzamento = n
+
+        diff_anterior = diff
+ 
+        print(f"n={n:5d}  thomas={t_thomas:.6f}s  numpy={t_np:.6f}s  "
+              f"{'← THOMAS VENCE' if t_thomas < t_np else '← NUMPY VENCE'}")
+ 
+    return tamanhos, tempos_thomas, tempos_np, cruzamento
+
+
+# rodar
+tamanhos, tempos_thomas, tempos_np, cruzamento = rodar_testes(
+    10, 2000, 100, repeticoes=10
+)
+
+print("\nPonto de cruzamento:", cruzamento)
+
+import matplotlib.pyplot as plt
+
+plt.plot(tamanhos, tempos_thomas, label="Thomas (tridiag)")
+plt.plot(tamanhos, tempos_np, label="NumPy solve")
+plt.xlabel("Tamanho n")
+plt.ylabel("Tempo (s)")
+plt.legend()
+plt.grid()
+plt.show()
